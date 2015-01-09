@@ -1,0 +1,2 @@
+#!/bin/sh
+exec docker-gen -only-exposed=true -watch=true -notify="sv reload haproxy" /etc/haproxy/haproxy.tmpl /etc/haproxy/haproxy.cfg

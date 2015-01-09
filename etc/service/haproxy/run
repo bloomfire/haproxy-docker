@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# HAProxy does things very differently than most services and can not be
+# directly exec'ed via runit as reloads will cause the original process to
+# be killed after the new process starts up. So, runit must instead start
+# up HAProxy in the background and monitor it from afar.
+#
+# This script should respect the following standards:
+#   sv status haproxy
+#   sv stop haproxy
+#   sv start haproxy
+#   sv reload haproxy # Pick up changes to haproxy.conf
+
+PID_PATH=/var/run/haproxy.pid
+BIN_PATH=/usr/sbin/haproxy
+CFG_PATH=/etc/haproxy/haproxy.cfg
+ 
+$BIN_PATH -f $CFG_PATH -p $PID_PATH -sf $([[ -f $PID_PATH ]] && cat $PID_PATH)
+
+trap "$BIN_PATH -f $CFG_PATH -p $PID_PATH -sf \$([[ -f $PID_PATH ]] && cat $PID_PATH)" SIGHUP
+trap "echo STOPPING ' ' $PID_PATH > /tmp/debug && kill -TERM \$(cat $PID_PATH) && rm -f $PID_PATH && exit 0" SIGTERM SIGINT
+
+# Don't sleep too long as signals will not be handled during sleep.
+while [ -f $PID_PATH ] && kill -0 $(cat $PID_PATH); do sleep 1; done
