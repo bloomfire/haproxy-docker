@@ -18,3 +18,11 @@ DONE
   exit 1
 
 fi
+
+runsvdir -P /etc/service &
+PID=$!
+
+echo "Starting Up ($PID) ..."
+trap "echo 'Shutting Down ($PID) ...' && kill -SIGHUP $PID && exit 0" SIGTERM SIGINT SIGHUP
+
+wait $PID
