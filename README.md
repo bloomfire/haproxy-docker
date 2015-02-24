@@ -1,4 +1,6 @@
-Run a single instance of this haproxy container on a host machine, and it will load balance to all other web containers running on the same host.  It is fully automated so that as you add additional web containers or stop old ones, haproxy is updated accordingly.
+Run a single instance of this haproxy container on a host machine, and it will load balance to all other web containers running on the same host.
+Rather than be fully automated -- which could be too "grabby" and add new containers before they have finished starting up -- this requires an
+exec into the container to notify it that it should regenerate the haproxy config based on running containers.
 
 Usage:
 
@@ -13,5 +15,8 @@ OR if you want a custom haproxy.cfg template:
 
 The haproxy.tmpl file is processed by [docker-gen][1] and is written as a golang template.
 
-
   [1]: https://github.com/jwilder/docker-gen
+
+To notify the haproxy container to regenerate its config execute:
+
+      docker exec HAPROXY_CONTAINER_ID haproxy-gen
