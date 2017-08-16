@@ -9,7 +9,7 @@ The haproxy container needs the host docker.sock
 Usage:
 
   docker run -v /var/run/docker.sock:/var/run/docker.sock \\
-             -p 8080:8080 -p 4343:4343 bloomfire/haproxy
+             -p 80:80 bloomfire/haproxy
 
 ###############################################################
 
@@ -24,5 +24,15 @@ PID=$!
 
 echo "Starting Up ($PID) ..."
 trap "echo 'Shutting Down ($PID) ...' && kill -SIGHUP $PID && exit 0" SIGTERM SIGINT SIGHUP
+
+haproxy-gen
+
+if [ -e /var/run/container-change ]; then
+  inotifywait -q -m -e attrib --format '%w%f' /var/run/container-change | while read NEWFILE
+  do
+    sleep 1 # Give it some time for the container to be fully up or down
+    haproxy-gen
+  done
+fi
 
 wait $PID

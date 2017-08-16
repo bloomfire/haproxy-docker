@@ -1,11 +1,12 @@
 Run a single instance of this haproxy container on a host machine, and it will load balance to all other web containers running on the same host.
-Rather than be fully automated -- which could be too "grabby" and add new containers before they have finished starting up -- this requires an
-exec into the container to notify it that it should regenerate the haproxy config based on running containers.
+There are two ways for new containers to notify haproxy that it should add the new container to the server pool.  One way is by adding volumes from
+the haproxy container and then touching the directory /var/run/container-change.  The other way is to exec into the container and manually run
+haproxy-gen.
 
 Usage:
 
       docker run -v /var/run/docker.sock:/var/run/docker.sock \
-                 -p 8080:8080 -p 4343:4343 bloomfire/haproxy
+                 -p 80 bloomfire/haproxy
 
 OR if you want a custom haproxy.cfg template:
 

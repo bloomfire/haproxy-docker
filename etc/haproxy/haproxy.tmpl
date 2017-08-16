@@ -23,15 +23,13 @@ defaults
   errorfile 504 /etc/haproxy/errors/504.http
 
 frontend http
-  bind :8080
-  redirect scheme https code 301 if !{ ssl_fc }
-
-frontend https
-  bind :4343
+  bind :80
   default_backend app
 
 backend app
   balance roundrobin
-{{ range $i, $c := . }}{{ range $j, $a := $c.Addresses }}{{ if eq "4343" $a.Port }}{{ if ne "haproxy" $c.Image.Repository }}
-  server {{ $c.ID }} {{ $a.IP }}:4343 check
+{{ $service_port := .Env.SERVICE_PORT }}
+{{ $service_image_name := .Env.SERVICE_IMAGE_NAME }}
+{{ range $i, $c := . }}{{ range $j, $a := $c.Addresses }}{{ if eq $a.Port $service_port }}{{if eq $c.Image.Repository $service_image_name }}
+  server {{ $c.ID }} {{ (index $c.Networks 0).IP }}:{{ $a.Port }} check
 {{ end }}{{ end }}{{ end }}{{ end }}
